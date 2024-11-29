@@ -1,20 +1,23 @@
 #### Preamble ####
-# Purpose: Tests the structure and validity of the simulated Australian 
-  #electoral divisions dataset.
-# Author: Rohan Alexander
-# Date: 26 September 2024
-# Contact: rohan.alexander@utoronto.ca
+# Purpose: Tests the structure and validity of the simulated IPL data for
+# tournaments 2021 to 2024
+# Author: Siddharth Gowda
+# Date: 26 November 2024
+# Contact: siddharth.gowda@mail.utoronto.ca
 # License: MIT
 # Pre-requisites: 
-  # - The `tidyverse` package must be installed and loaded
+  # - The `tidyverse` package must be installed
   # - 00-simulate_data.R must have been run
-# Any other information needed? Make sure you are in the `starter_folder` rproj
+  # - testthat must be installed
+  # - arrow must be instaled
+# Any other information needed? None
 
 
 #### Workspace setup ####
 library(tidyverse)
-
-analysis_data <- read_csv("data/00-simulated_data/simulated_data.csv")
+library(testthat)
+library(arrow)
+analysis_data <- read_parquet("data/00-simulated_data/simulated_data.parquet")
 
 # Test if the data was successfully loaded
 if (exists("analysis_data")) {
@@ -23,67 +26,37 @@ if (exists("analysis_data")) {
   stop("Test Failed: The dataset could not be loaded.")
 }
 
+# all overs have values from 1-20
+test_that("Overs are only in T20 range (1-20)", {
+  expect_true(all(analysis_data$over %in% c(1:20)),
+              info = "There are over numbers beyond 1 to 20, ensure that all data represents T20 cricket"
+  )
+})
 
-#### Test data ####
+# Battsmen are never the same as bowler
+test_that("Bowlers are never bowling to themselves", {
+  expect_true(all(analysis_data$bowler != analysis_data$striker),
+              info = "The bowler cannot be the same person as the batter"
+  )
+})
 
-# Check if the dataset has 151 rows
-if (nrow(analysis_data) == 151) {
-  message("Test Passed: The dataset has 151 rows.")
-} else {
-  stop("Test Failed: The dataset does not have 151 rows.")
-}
+# Test that bowling and batting teams ar e the same
+test_that("The batting and bowling team is not the same", {
+  expect_true(all(analysis_data$batting_team != analysis_data$bowling_team),
+              info = "There is at least one instance of the bowling team being the same as the batting team"
+  )
+})
 
-# Check if the dataset has 3 columns
-if (ncol(analysis_data) == 3) {
-  message("Test Passed: The dataset has 3 columns.")
-} else {
-  stop("Test Failed: The dataset does not have 3 columns.")
-}
+# Test wicket value is never na
+test_that("Wicket Taken value is never NA", {
+  expect_true(all(!is.na(analysis_data$wicket_taken)),
+              info = "There is at least one instance of the wicket taken value being NA"
+  )
+})
 
-# Check if all values in the 'division' column are unique
-if (n_distinct(analysis_data$division) == nrow(analysis_data)) {
-  message("Test Passed: All values in 'division' are unique.")
-} else {
-  stop("Test Failed: The 'division' column contains duplicate values.")
-}
-
-# Check if the 'state' column contains only valid Australian state names
-valid_states <- c("New South Wales", "Victoria", "Queensland", "South Australia", 
-                  "Western Australia", "Tasmania", "Northern Territory", 
-                  "Australian Capital Territory")
-
-if (all(analysis_data$state %in% valid_states)) {
-  message("Test Passed: The 'state' column contains only valid Australian state names.")
-} else {
-  stop("Test Failed: The 'state' column contains invalid state names.")
-}
-
-# Check if the 'party' column contains only valid party names
-valid_parties <- c("Labor", "Liberal", "Greens", "National", "Other")
-
-if (all(analysis_data$party %in% valid_parties)) {
-  message("Test Passed: The 'party' column contains only valid party names.")
-} else {
-  stop("Test Failed: The 'party' column contains invalid party names.")
-}
-
-# Check if there are any missing values in the dataset
-if (all(!is.na(analysis_data))) {
-  message("Test Passed: The dataset contains no missing values.")
-} else {
-  stop("Test Failed: The dataset contains missing values.")
-}
-
-# Check if there are no empty strings in 'division', 'state', and 'party' columns
-if (all(analysis_data$division != "" & analysis_data$state != "" & analysis_data$party != "")) {
-  message("Test Passed: There are no empty strings in 'division', 'state', or 'party'.")
-} else {
-  stop("Test Failed: There are empty strings in one or more columns.")
-}
-
-# Check if the 'party' column has at least two unique values
-if (n_distinct(analysis_data$party) >= 2) {
-  message("Test Passed: The 'party' column contains at least two unique values.")
-} else {
-  stop("Test Failed: The 'party' column contains less than two unique values.")
-}
+# Test wicket value is boolean
+test_that("Wicket Taken value is always TRUE of FALSE", {
+  expect_true(all(is_bare_logical(analysis_data$wicket_taken)),
+              info = "There is at least one instance of the wicket taken value being TRUE or FALSE"
+  )
+})

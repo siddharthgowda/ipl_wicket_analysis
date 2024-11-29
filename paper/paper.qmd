@@ -24,7 +24,6 @@ library(here)
 library(tibble)
 library(knitr)
 library(modelsummary)
-library(broom)
 library(marginaleffects)
 
 cleaned_data <- read_parquet(here("data/02-analysis_data/cleaned_data.parquet"))
@@ -38,6 +37,12 @@ set.seed(888)
 \newpage
 
 # Data
+
+```{r}
+
+cleaned_data %>% select(!c(ball, innings, match_id)) %>% head()
+
+```
 
 ## Measurement
 
@@ -297,6 +302,8 @@ bowling_batting_role_matchup_boundaries <- cleaned_data %>%
     num_balls = n(),                             
   ) %>% arrange(bowling_style, batter_playing_role)
 
+bowling_batting_role_matchup_boundaries
+
 
 ```
 
@@ -310,10 +317,5 @@ What to cite:
 - cricketdata
 - ESPNCricinfo
 - Cricsheet
-- kable
-- knitr
-- R
-- tidyverse
-- ggplot
-
+- All tidyverse packages used
 

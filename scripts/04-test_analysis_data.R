@@ -1,69 +1,62 @@
 #### Preamble ####
-# Purpose: Tests... [...UPDATE THIS...]
-# Author: Rohan Alexander [...UPDATE THIS...]
-# Date: 26 September 2024 [...UPDATE THIS...]
-# Contact: rohan.alexander@utoronto.ca [...UPDATE THIS...]
+# Purpose: Tests the structure and validity of the clean IPL data for
+# tournaments 2021 to 2024
+# Author: Siddharth Gowda
+# Date: 26 November 2024
+# Contact: siddharth.gowda@mail.utoronto.ca
 # License: MIT
-# Pre-requisites: [...UPDATE THIS...]
-# Any other information needed? [...UPDATE THIS...]
+# Pre-requisites: 
+# - The `tidyverse` package must be installed
+# - 00-simulate_data.R must have been run
+# - testthat must be installed
+# - arrow must be instaled
+# Any other information needed? None
 
 
 #### Workspace setup ####
 library(tidyverse)
 library(testthat)
+library(arrow)
+analysis_data <- read_parquet("data/02-analysis_data/cleaned_data.parquet")
 
-data <- read_csv("data/02-analysis_data/analysis_data.csv")
+# Test if the data was successfully loaded
+if (exists("analysis_data")) {
+  message("Test Passed: The dataset was successfully loaded.")
+} else {
+  stop("Test Failed: The dataset could not be loaded.")
+}
 
-
-#### Test data ####
-# Test that the dataset has 151 rows - there are 151 divisions in Australia
-test_that("dataset has 151 rows", {
-  expect_equal(nrow(analysis_data), 151)
+# all overs have values from 1-20
+test_that("Overs are only in T20 range (1-20)", {
+  expect_true(all(analysis_data$over %in% c(1:20)),
+              info = "There are over numbers beyond 1 to 20, ensure that all data represents T20 cricket"
+  )
 })
 
-# Test that the dataset has 3 columns
-test_that("dataset has 3 columns", {
-  expect_equal(ncol(analysis_data), 3)
+# Battsmen are never the same as bowler
+test_that("Bowlers are never bowling to themselves", {
+  expect_true(all(analysis_data$bowler != analysis_data$striker),
+              info = "The bowler cannot be the same person as the batter"
+  )
 })
 
-# Test that the 'division' column is character type
-test_that("'division' is character", {
-  expect_type(analysis_data$division, "character")
+# Test that bowling and batting teams ar e the same
+test_that("The batting and bowling team is not the same", {
+  expect_true(all(analysis_data$batting_team != analysis_data$bowling_team),
+              info = "There is at least one instance of the bowling team being the same as the batting team"
+  )
 })
 
-# Test that the 'party' column is character type
-test_that("'party' is character", {
-  expect_type(analysis_data$party, "character")
+# Test wicket value is never na
+test_that("Wicket Taken value is never NA", {
+  expect_true(all(!is.na(analysis_data$wicket)),
+              info = "There is at least one instance of the wicket taken value being NA"
+  )
 })
 
-# Test that the 'state' column is character type
-test_that("'state' is character", {
-  expect_type(analysis_data$state, "character")
-})
-
-# Test that there are no missing values in the dataset
-test_that("no missing values in dataset", {
-  expect_true(all(!is.na(analysis_data)))
-})
-
-# Test that 'division' contains unique values (no duplicates)
-test_that("'division' column contains unique values", {
-  expect_equal(length(unique(analysis_data$division)), 151)
-})
-
-# Test that 'state' contains only valid Australian state or territory names
-valid_states <- c("New South Wales", "Victoria", "Queensland", "South Australia", "Western Australia", 
-                  "Tasmania", "Northern Territory", "Australian Capital Territory")
-test_that("'state' contains valid Australian state names", {
-  expect_true(all(analysis_data$state %in% valid_states))
-})
-
-# Test that there are no empty strings in 'division', 'party', or 'state' columns
-test_that("no empty strings in 'division', 'party', or 'state' columns", {
-  expect_false(any(analysis_data$division == "" | analysis_data$party == "" | analysis_data$state == ""))
-})
-
-# Test that the 'party' column contains at least 2 unique values
-test_that("'party' column contains at least 2 unique values", {
-  expect_true(length(unique(analysis_data$party)) >= 2)
+# Test wicket value is boolean
+test_that("Wicket Taken value is always TRUE of FALSE", {
+  expect_true(all(is_bare_logical(analysis_data$wicket)),
+              info = "There is at least one instance of the wicket taken value being TRUE or FALSE"
+  )
 })
