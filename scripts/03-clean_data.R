@@ -19,16 +19,16 @@ ipl_men_raw %>% glimpse()
 player_meta_raw %>% glimpse()
 
 ipl_men_clean <- ipl_men_raw %>%  mutate(year = year(ymd(start_date))) %>%
-  select(!season) %>% select(!start_date) %>% 
+  select(!season) %>% select(!start_date) %>%
+  mutate(run_rate = 6*(runs_scored_yet)/(120-balls_remaining)) %>% 
   select(match_id, year, venue, innings, over, ball, batting_team, bowling_team, 
-         striker, bowler, runs_off_bat, wickets_lost_yet, target)
+         striker, bowler, runs_off_bat, wickets_lost_yet, wicket, target, run_rate) %>% 
+  filter(run_rate != Inf) %>% filter(!is.na(run_rate)) %>% filter(year >= 2021)
 
 ipl_men_clean_no_two_innings <- ipl_men_clean %>% filter(innings > 2)
 
 ipl_men_clean <- ipl_men_clean %>% 
-  filter(!(match_id %in% ipl_men_clean_no_two_innings$match_id)) %>%
-  # only boundaries
-  mutate(is_boundary = (runs_off_bat >= 4))
+  filter(!(match_id %in% ipl_men_clean_no_two_innings$match_id))
 
 player_meta_clean <- player_meta_raw %>% select(unique_name, batting_style, bowling_style, playing_role)
 
@@ -39,12 +39,30 @@ cleaned_data <- left_join(cleaned_data, (player_meta_clean %>% select(!batting_s
                           by=c('bowler' = 'unique_name')) %>% 
   rename(bowler_playing_role = playing_role)
 
+# Calculate recent wickets
+recent_wickets <- cleaned_data %>%
+  group_by(match_id, over, innings) %>%
+  summarise(num_wickets = sum(wicket == TRUE), .groups = 'drop')
+
+cleaned_data <- cleaned_data %>%
+  left_join(recent_wickets, by = c("match_id", "innings", "over")) %>%
+  # sorting data to use lag
+  arrange(match_id, innings, over) %>%
+  group_by(match_id, innings) %>%
+  mutate(prev_over_wickets = lag(num_wickets)) %>%
+  ungroup() %>%
+  select(-num_wickets)
+
+# remove outliers
+
 cleaned_data <- cleaned_data %>%
   filter(!is.na(bowler_playing_role)) %>%
   filter(!is.na(batter_playing_role)) %>%
   filter(!is.na(batting_style)) %>%
   filter(!is.na(bowling_style)) %>%
-  filter(!grepl(",", bowling_style))
+  filter(!grepl(",", bowling_style)) %>% 
+  filter(!is.na(prev_over_wickets))
+
 
 #### Save data ####
 write_parquet(cleaned_data, "data/02-analysis_data/cleaned_data.parquet")

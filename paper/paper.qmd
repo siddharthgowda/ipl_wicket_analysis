@@ -23,8 +23,13 @@ library(arrow)
 library(here)
 library(tibble)
 library(knitr)
+library(modelsummary)
+library(broom)
+library(marginaleffects)
+
 cleaned_data <- read_parquet(here("data/02-analysis_data/cleaned_data.parquet"))
-cleaned_data <- cleaned_data %>% filter(year >= 2021)
+test_data <- read_parquet(here("data/02-analysis_data/test_data.parquet"))
+set.seed(888)
 ```
 
 
@@ -32,7 +37,29 @@ cleaned_data <- cleaned_data %>% filter(year >= 2021)
 
 \newpage
 
-# Data and Graphs
+# Data
+
+## Measurement
+
+## Predictor Variables
+
+```{r}
+
+num_bowlers_per_type <- cleaned_data %>%
+  group_by(bowling_style) %>% 
+  summarise(
+    num_bowlers = n_distinct(bowler)                            
+  )
+
+num_batters_per_type <- cleaned_data %>%
+  group_by(batting_style) %>% 
+  summarise(
+    num_bowlers = n_distinct(striker)                          
+  )
+
+```
+
+## Relationship Between Wickets and other Variables
 
 ```{r}
 cleaned_data %>% head()
@@ -40,16 +67,15 @@ cleaned_data %>% head()
 stadium_boundaries <- cleaned_data %>%
   group_by(venue) %>%
   summarise(
-    num_boundaries = sum(is_boundary == TRUE),  
-    num_balls = n(),                             
-    boundary_pct = num_boundaries / num_balls
-  ) %>% arrange(desc(boundary_pct), desc(num_balls))
+    num_matches = n_distinct(match_id),
+    num_wickets = sum(wicket == TRUE),  
+  ) %>% arrange(desc(num_wickets), desc(num_matches))
 
-ggplot(stadium_boundaries, aes(x = reorder(venue, boundary_pct), y = boundary_pct)) +
+ggplot(stadium_boundaries, aes(x = venue, y = (num_wickets/num_matches))) +
   geom_bar(stat = "identity", fill = "steelblue") +
-  labs(title = "Boundary Percentage by Stadium",
+  labs(
        x = "Stadium Name",
-       y = "Boundary Percentage") +
+       y = "Wickets Per Match") +
   theme_minimal() +
   coord_flip()
 
@@ -57,40 +83,19 @@ ggplot(stadium_boundaries, aes(x = reorder(venue, boundary_pct), y = boundary_pc
 
 ```{r}
 
-target_boundaries <- cleaned_data %>%
-  group_by(match_id, target) %>%
-  summarise(
-    num_boundaries = sum(is_boundary == TRUE),  
-    num_balls = n(),                             
-    boundary_pct = num_boundaries / num_balls
-  ) %>% arrange(desc(boundary_pct), desc(num_balls))
-
-ggplot(target_boundaries, aes(x = target, y = boundary_pct)) +
-  geom_point(color = "steelblue", size = 3, alpha = 0.5) +
-  labs(title = "Boundary Percentage vs Target per Match",
-       x = "Target",
-       y = "Boundary Percentage") +
-  geom_smooth(method = "lm", color = "red") +
-  theme_minimal() 
-```
-
-```{r}
-
 over_boundaries <- cleaned_data %>%
   group_by(over) %>%
   summarise(
-    num_boundaries = sum(is_boundary == TRUE),  
-    num_balls = n(),                             
-    boundary_pct = num_boundaries / num_balls
-  ) %>% arrange(desc(boundary_pct), desc(num_balls))
+    num_wickets = sum(wicket == TRUE),  
+    num_balls = n()
+  ) %>% arrange(desc(num_wickets), desc(num_balls))
 
-ggplot(over_boundaries, aes(x = over, y = boundary_pct)) +
+ggplot(over_boundaries, aes(x = over, y = num_wickets)) +
   geom_point(color = "steelblue", size = 3) +
-  labs(title = "Boundary Percentage vs Over Number",
+  labs(
        x = "Over",
-       y = "Boundary Percentage") +
-  theme_minimal() 
-
+       y = "Number of Wickets") +
+  theme_minimal()
 
 ```
 
@@ -99,48 +104,216 @@ ggplot(over_boundaries, aes(x = over, y = boundary_pct)) +
 bowling_batting_matchup_boundaries <- cleaned_data %>%
   group_by(bowling_style, batting_style) %>%
   summarise(
-    num_boundaries = sum(is_boundary == TRUE),  
+    num_wickets = sum(wicket == TRUE),  
     num_balls = n(),                             
-    boundary_pct = num_boundaries / num_balls
-  ) %>% arrange(desc(boundary_pct), desc(num_balls))
+  ) %>% arrange(desc(num_wickets), desc(num_balls))
 
-ggplot(bowling_batting_matchup_boundaries, aes(x = bowling_style, y = boundary_pct, fill = batting_style)) +
+ggplot(bowling_batting_matchup_boundaries, aes(x = bowling_style, y = num_wickets, fill = batting_style)) +
   geom_bar(stat = "identity", position = position_dodge()) +
-  labs(title = "Boundary Percentage by Bowling and Batting Style",
-       x = "Bowling and Batting Style",
-       y = "Boundary Percentage") +
+  labs(
+       x = "Bowling Style",
+       y = "Number of Wickets") +
   theme_minimal() +
   theme(axis.text.x = element_text(angle = 45, hjust = 1))
 
 ```
 
 ```{r}
+wickets_prev_over_wickets <- cleaned_data %>%
+  group_by(over) %>%
+  summarise(
+    num_wickets = sum(wicket == TRUE),
+    prev_over_wickets = mean(prev_over_wickets),
+    num_balls = n(),                             
+  ) %>% arrange(desc(num_wickets), desc(num_balls))
 
-over_bowlers <- cleaned_data %>%
-  group_by(over, bowling_style) %>%
-  summarise(ball_count = n())
+ggplot(wickets_prev_over_wickets, aes(x = prev_over_wickets, y = num_wickets)) +
+  geom_point(color = "steelblue", size = 3, alpha = 0.7) +
+  labs(
+       x = "Wickets in Previous Over Wickets",
+       y = "Number of Wickets") +
+  theme_minimal() +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+
 ```
+```{r}
 
+ggplot(cleaned_data, aes(x = run_rate, fill = factor(wicket))) +
+  geom_histogram(position = "identity", alpha = 0.8, bins = 30) +
+  labs(
+    x = "Run Rate",
+    y = "Count",
+    title = "Histogram of Run Rate by Wicket Occurrence"
+  ) +
+  scale_fill_discrete(name = "Wicket Occurred", labels = c("No Wicket", "Wicket")) + 
+  theme_minimal()
+```
 
 # Model
 
+## Model set-up
+
+### Model justification
+
+
+# Results
+
 ```{r}
-model <- glm(is_boundary ~ target, family = binomial, data = cleaned_data)
-summary(model)
+simple_glm_wicket_model <- readRDS(here("models/simple_glm_wicket_model.rds"))
+
+#summary(simple_glm_wicket_model)
+modelsummary(simple_glm_wicket_model)
 ```
+
+```{r}
+complex_glm_wicket_model <- readRDS(here("models/complex_glm_wicket_model.rds"))
+#summary(complex_glm_wicket_model)
+modelsummary(complex_glm_wicket_model)
+```
+
+```{r}
+overly_complex_glm_wicket_model <- readRDS(here("models/overly_complex_glm_wicket_model.rds"))
+#summary(overly_complex_glm_wicket_model)
+modelsummary(overly_complex_glm_wicket_model)
+```
+
+# Simple Model Summary
+
+```{r}
+overly_complex_glm_wicket_model <- complex_glm_wicket_model <- readRDS(here("models/overly_complex_glm_wicket_model.rds"))
+
+#summary(overly_complex_glm_wicket_model)
+modelsummary(overly_complex_glm_wicket_model)
+```
+
+
+
+```{r}
+simple_glm_wicket_model_predictions <-
+  predictions(simple_glm_wicket_model) |>
+  as_tibble()
+
+simple_glm_wicket_model_predictions |>
+  mutate(wicket = factor(wicket)) |>
+  ggplot(aes(x = over, y = estimate, color = wicket)) +
+  stat_ecdf(geom = "point", alpha = 0.75) +
+  labs(
+    x = "The Over",
+    y = "Estimated Probability that a wicket will occur",
+    color = "Was actually a wicket"
+  ) +
+  theme_classic() +
+  theme(legend.position = "bottom")
+```
+
+```{r}
+test_data_simple <- test_data
+predictions <- predict(simple_glm_wicket_model, newdata = test_data_simple, type = "response")
+
+test_data_simple$predicted_wicket_prob <- predictions
+test_data_simple <- test_data_simple %>% 
+  mutate(predicted_wicket = predicted_wicket_prob >= 0.5) %>% 
+  mutate(correct_prediction = predicted_wicket == wicket)
+
+summary_results <- test_data_simple %>% group_by(wicket) %>% 
+  summarise(
+  correct = sum(correct_prediction),
+  incorrect = sum(!correct_prediction)
+)
+
+summary_results
+
+```
+
+## Complex Model Summary
+
+
+```{r}
+complex_glm_wicket_model_predictions <-
+  predictions(complex_glm_wicket_model) |>
+  as_tibble()
+
+complex_glm_wicket_model_predictions |>
+  mutate(wicket = factor(wicket)) |>
+  ggplot(aes(x = prev_over_wickets, y = estimate, color = wicket)) +
+  stat_ecdf(geom = "point", alpha = 0.75) +
+  labs(
+    x = "The Number of Wickets Taken in the Previous Over",
+    y = "Estimated Probability that a wicket will occur",
+    color = "Was actually a wicket"
+  ) +
+  theme_classic() +
+  theme(legend.position = "bottom")
+```
+
+```{r}
+test_data_complex <- test_data
+predictions <- predict(complex_glm_wicket_model, newdata = test_data_complex, type = "response")
+
+test_data_simple$predicted_wicket_prob <- predictions
+test_data_simple <- test_data_simple %>% 
+  mutate(predicted_wicket = predicted_wicket_prob >= 0.5) %>% 
+  mutate(correct_prediction = predicted_wicket == wicket)
+
+summary_results <- test_data_simple %>% group_by(wicket) %>% 
+  summarise(
+  correct = sum(correct_prediction),
+  incorrect = sum(!correct_prediction)
+)
+
+summary_results
+```
+
+# Discussion
+
+## First discussion point {#sec-first-point}
+
+If my paper were 10 pages, then should be be at least 2.5 pages. The discussion is a chance to show off what you know and what you learnt from all this. 
+
+## Second discussion point
+
+Please don't use these as sub-heading labels - change them to be what your point actually is.
+
+## Third discussion point
+
+## Weaknesses and next steps
+
+Weaknesses and next steps should also be included.
+
+\newpage
+
+\appendix
+
+# Appendix {-}
+
+# Additional data details
+
 ```{r}
 
-model <- glm(is_boundary ~ over, family = binomial, data = cleaned_data)
-summary(model)
+bowling_batting_role_matchup_boundaries <- cleaned_data %>%
+  group_by(bowling_style, batter_playing_role) %>%
+  summarise(
+    num_wickets = sum(wicket == TRUE),  
+    num_balls = n(),                             
+  ) %>% arrange(bowling_style, batter_playing_role)
+
 
 ```
-```{r}
 
-model <- glm(is_boundary ~ target + bowling_style + batting_style, family = binomial, data = cleaned_data)
-summary(model)
+# Model details {#sec-model-details}
 
-```
+## Posterior predictive check
 
 # References
+
+What to cite:
+- cricketdata
+- ESPNCricinfo
+- Cricsheet
+- kable
+- knitr
+- R
+- tidyverse
+- ggplot
 
 
