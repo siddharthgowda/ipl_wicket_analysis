@@ -53,7 +53,9 @@ cleaned_data <- cleaned_data %>%
   ungroup() %>%
   select(-num_wickets)
 
-# remove outliers
+# remove na and for bowling_style removing bowlers who were listed to have
+# multiple styles since there were very few of them and it makes the
+# analysis messy
 
 cleaned_data <- cleaned_data %>%
   filter(!is.na(bowler_playing_role)) %>%
