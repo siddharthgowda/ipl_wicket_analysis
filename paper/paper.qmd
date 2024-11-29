@@ -2,9 +2,8 @@
 title: "My title"
 subtitle: "My subtitle if needed"
 author: 
-  - First author
-  - Another author
-thanks: "Code and data are available at: [https://github.com/RohanAlexander/starter_folder](https://github.com/RohanAlexander/starter_folder)."
+  - Siddharth Gowda
+thanks: "Code and data are available at: [https://github.com/siddharthgowda/ipl_wicket_analysis](https://github.com/siddharthgowda/ipl_wicket_analysis)."
 date: today
 date-format: long
 abstract: "First sentence. Second sentence. Third sentence. Fourth sentence."
@@ -63,6 +62,8 @@ num_batters_per_type <- cleaned_data %>%
   )
 
 ```
+
+## Data Cleaning
 
 ## Relationship Between Wickets and other Variables
 
@@ -290,6 +291,187 @@ Weaknesses and next steps should also be included.
 \appendix
 
 # Appendix {-}
+
+# Data Sheet for The Raw Data {#sec-data-sheet}
+
+## Questions
+
+### Who put the dataset together?
+
+The raw dataset was acquired from the [@cricketdata] R package. This dataset had many contributors which can be seen through this [link](https://pkg.robjhyndman.com/cricketdata/), but the main developer is Rob Hyndman. The dataset scraps the html from [@espncricinfo] and [@Cricsheet]. These are two reputable organizations when it comes to cricket game data. [@Cricsheet] is moreso responsible for play by play cricket data, like giving the data for what happens for every ball in a game, whereas [@espncricinfo] is more responsible for general player career information and statistics.
+
+### Who paid for the dataset to be created?
+
+The  [@cricketdata] R package is completely open source and free under the GPL-3 license. The source code can be seen through this [link](https://github.com/robjhyndman/cricketdata). In terms of ESPN Cricinfo, this is a site and organization that makes money talking about cricket and airing games. So, it is in their best interest to give basic statistics for free on their website to entice people to use their services to watch and interact with content related to cricket. Cricsheet is operated by Stephen Rushe. He has written code to extract play-by-play cricket match data, which most likely means he is web scraping. There is not much other information about the code that extracts the data and what sites he uses.
+
+### How complete is the dataset? {#sec-complete-dataset}
+
+The play by play data is very complete. For each ball in a game, it includes the bowler, batter, the batter on the opposite wicket, the venue, teams, the runs given, and more. The important data that seems to be missing is data related to the position of the fielders and the distance and final location of the ball once and if it hits the bat. In terms of player info, it is also very complete. It includes information about their batting style, blowing style if applicable, and their role on the team. The only issue here is that a player's role on the team can change depending on the team they are one. For instance, a player might be an opening batsman when playing in test cricket but could be a midover batsman when playing in T20. This dataset does not account for this discrepancy. 
+
+### Which variables are present, and, equally, not present, for particular observations?
+
+For play-by-play data the bowler, battsman, and teams involved in the play are present and so is general game information. Furthermore, the final outcome of the play, such as the number of runs, or if a wicket occurred are also given. Information about ball speed, distance, location, and fielding is not given. For player information, information about their country of citizenship, country of birth, batting style, bowling style, and batting order, and player role on a team are given. Potential missing observations with the player information are listed in @sec-complete-dataset.
+
+## Data Dictionary For Raw Data {#sec-data-dictionary}
+
+For this report, there are only two datasets used, the IPL (Indian Premier League) play-by-play data and player metadata. The variables for these data sets will be listed here with examples.
+
+### Play-by-play IPL Data
+
+Match id (Integer)  
+Example: 335982  
+A randomly generated ID uniquely identifies each cricket match in the dataset.
+
+Season (string)  
+Example: 2007/8 or 2024  
+Represents the IPL tournament year of the match. For instance “2007/8” represents the 2007 to 2008 IPL season and 2024 represents the tournament that was played only in 2024\.
+
+Season (date)  
+Example: 2024-04-15  
+Represents the day the match was played. It is in a year-month-day format.
+
+Venue (string)  
+Example: M Chinnaswamy Stadium  
+The location the match is played in.
+
+Innings (Integer)  
+Example: 1  
+The innings the current ball is played in. Should only be either 1 or two.
+
+Over (Integer)  
+Example: 7  
+The over the current ball is played in. This should be from 1 to 20 in T20 Cricket.
+
+Ball (Integer)  
+Example: 3  
+The current ball number in the over. This typically should be from 1 to 6, but could be more if no balls or wides are given.
+
+Batting Team (String)  
+Example: Kings XI Punjab  
+The team that is currently batting.
+
+Bowling Team (String)  
+Example: Mumbai Indians  
+The team that is currently bowling.
+
+Striker (String)  
+Example: AJ Finch  
+The player that is currently on the wicket the bowler is bowling to.
+
+Non-Striker (String)  
+Example: A Ashish Reddy  
+The player that is batting but is on the opposition wicket.
+
+Bowler (String)  
+Example: SMSM Senanayake  
+The player that is bowling.
+
+Runs off of the bat (Integer)  
+Example: 3  
+The number of the runs the team scored from this ball directly off of the strikers bat.
+
+Extra Runs (Integer)  
+Example: 1  
+The number of runs that the team scored that was not because of the striker's bat. This could be because of wides.
+
+Extra Ball (Boolean)  
+Example: False  
+Was this ball an extra ball? For instance, this ball could be extra due to a wide.
+
+Balls Remaining (Integer)  
+Example: 79  
+The number of balls remaining in the game. This is from 0 to 120\.
+
+Runs Scored (Integer)  
+Example: 101  
+The number of runs already scored by the batting team.
+
+Wicket (Boolean)  
+Example: True  
+Did a wicket occur in this ball.  
+Wickets Lost (Integer)  
+Example: 7  
+The number of wickets that have fallen. From 0 to 10\.
+
+First Innings Total (Integer)  
+Example: 165  
+The total number of runs earned in the first innings.
+
+Second Innings Total (Integer)  
+Example: 168  
+The total number of runs earned in the second innings.
+
+Target (Integer)  
+Example: 207  
+The par course for the given venue’s pitch on that match’s day.
+
+Wides (Integer)  
+Example: 4  
+The number of wides bowled in this over.
+
+No Balls (Integer)  
+Example: 2  
+The number of no balls bowled in this over.
+
+Byes (Integer)  
+Example: 4  
+Runs scored by byes in this ball. This ranges from 0 to 4\.
+
+Leg Byes (Integer)  
+Example: 2  
+Runs scored by leg byes in this ball. This ranges from 0-4.
+
+Wicket Type (String)  
+Example: Bowled  
+If a wicket occurred, this column will describe how it happened. It includes bowled, stumped, and caught.
+
+Player Dismissed (String)  
+Example: A Ashish Reddy  
+If a wicket occurred, this column will have the name of the player that was dismissed.
+
+### Player Metadata
+
+Cricinfo Player id (Integer)  
+Example: 1175501  
+A randomly generated ID uniquely identifies each cricket player from Cricinfo data.
+
+Cricsheet Player id (Alphanumeric)  
+Example: 21d38d47  
+A randomly generated ID uniquely identifies each cricket player from Cricinfo data.
+
+Unique Name (String)  
+Example: Alkandari Abdulrahman  
+The unique name of the player that is stored in the [@cricketdata] package. All other tables will only use the unique name of a player and not the full name of the player.
+
+Full Name (String)  
+Example: AGHM Alkandari Abdulrahman  
+The full name of a player.
+
+Country (String)  
+Example: Zimbabwe  
+The country of citizenship for this player.
+
+Date of Birth (Date)  
+Example: 1971-09-21  
+The day the player was born in a year-month-day format.
+
+Birthplace (String)  
+Example: Nangrahar, Afghanistan  
+The city and sometimes country a player was born in.
+
+Batting Style (String)  
+Example: Left hand Bat  
+The batting style of a player. This is either left hand or right hand.
+
+Bowling Style (String)  
+Example: Slow Left arm Orthodox  
+The bowling style of a player. This only exists if a player is a bowler.
+
+Player Role (String)  
+Example: Allrounder  
+The role of a player on the team.
+
+
 
 # Additional data details
 
