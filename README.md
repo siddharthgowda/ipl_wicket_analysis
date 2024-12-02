@@ -1,30 +1,23 @@
-# Starter folder
+# IPL Wicket Analysis
 
 ## Overview
 
-This repo provides students with a foundation for their own projects associated with *Telling Stories with Data*. You do not need every aspect for every paper and you should delete aspects that you do not need.
+The goal of this paper is to figure out which variables are the best at predicting a future wicket in T20 Cricket. This was achieved by analyzing play by play cricket data from the 2021, 2022, 2023, and 2024 IPL men's tournament data. Overall, the analysis found that the number of wickets in the previous over was the best predictor of future wickets. The paper also contains an idealized methodology for recording cricket data, a data dictionary for cleaned data, and a datasheet for raw data.
 
+Please run all files in the `scripts` folder before running the `paper.qmd` file.
 
 ## File Structure
 
 The repo is structured as:
 
--   `data/raw_data` contains the raw data as obtained from X.
--   `data/analysis_data` contains the cleaned dataset that was constructed.
--   `model` contains fitted models. 
--   `other` contains relevant literature, details about LLM chat interactions, and sketches.
--   `paper` contains the files used to generate the paper, including the Quarto document and reference bibliography file, as well as the PDF of the paper. 
--   `scripts` contains the R scripts used to simulate, download and clean data.
+- `data/00-simulated_data` contains a simulated dataset.
+- `data/01-raw_data` contains the raw data as obtained from the `cricketdata` package.
+-   `data/02-analysis_data` contains the cleaned data set that was constructed using the `tidyverse` package.
+-   `other` contains details about LLM chat interactions, and sketches.
+-   `paper` contains the files used to generate the paper, including the Quarto document and reference bibliography file, as well as the PDF of the paper. The appendix of this paper also includes a clean data dictionary, a raw data datasheet, and an idealized methodology for recording cricket data. 
+-   `scripts` contains the R scripts used to simulate, download, clean data, and train the models, and test the simulated and cleaned data sets.
 
 
 ## Statement on LLM usage
 
-Aspects of the code were written with the help of the auto-complete tool, Codriver. The abstract and introduction were written with the help of ChatHorse and the entire chat history is available in inputs/llms/usage.txt.
-
-## Some checks
-
-- [ ] Change the rproj file name so that it's not starter_folder.Rproj
-- [ ] Change the README title so that it's not Starter folder
-- [ ] Remove files that you're not using
-- [ ] Update comments in R scripts
-- [ ] Remove this checklist
+ChatGPT-4 was used to generate some documentation for reference, code debugging, and very lightly used to edit human written text. The entire chat history is available in `other/llm_usage/usage.txt`.
