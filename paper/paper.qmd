@@ -20,11 +20,9 @@ bibliography: references.bib
 library(tidyverse)
 library(arrow)
 library(here)
-library(tibble)
 library(knitr)
 library(modelsummary)
 library(marginaleffects)
-library(kableExtra)
 
 cleaned_data <- read_parquet(here("data/02-analysis_data/cleaned_data.parquet"))
 test_data <- read_parquet(here("data/02-analysis_data/test_data.parquet"))
@@ -88,9 +86,9 @@ cleaned_data %>% select(!c(year, venue, batter_playing_role, bowler_playing_role
 
 ## Measurement
 
-All cricket data is from the [@citeR] package [@cricketdata]. The data that was used is from the CRAN version of the package and not the [@github] developer tools version because the CRAN is more stable. [@cricketdata] takes data from [@cricinfo] and [@cricsheet]. While not stated by [@cricketdata], based on the code the team behind the package are scrapping the HTML of ESPN Cricinfo and Cricsheet, As a result, anyone using the package must respect the rate limits set by these sites. Therefore, the data was first saved as CSV before performing any other cleaning and analysis.
+All cricket data is from the [@citeR] package [@cricketdata]. The data that was used is from the CRAN version of the package and not the [@github] developer tools version because the CRAN is more stable. [@cricketdata] takes data from [@espncricinfo] and [@cricsheet]. While not stated by [@cricketdata], based on the code the team behind the package are scrapping the HTML of ESPN Cricinfo and Cricsheet, As a result, anyone using the package must respect the rate limits set by these sites. Therefore, the data was first saved as CSV before performing any other cleaning and analysis.
 
-More information about the raw data sets, measurements, [@cricsheet], [@cricinfo], and [@cricketdata] is in @sec-data-sheet.
+More information about the raw data sets, measurements, [@cricsheet], [@espncricinfo], and [@cricketdata] is in @sec-data-sheet.
 
 
 ## Data Cleaning
@@ -195,7 +193,7 @@ Based on @fig-bowlingstyle-wickets, for left hand batters, left arm fast bowlers
 
 ```{r}
 #| label: fig-prevoverwickets-wickets
-#| fig-cap: Correlation Between Wickets in the Last and Next Over
+#| fig-cap: Positive Association Between Wickets in the Last and Next Over
 #| echo: false
 #| warning: false
 wickets_prev_over_wickets <- cleaned_data %>%
@@ -223,17 +221,21 @@ In @fig-prevoverwickets-wickets, there is a strong positive correlation between 
 
 The goal of the model is accurately predict when a wicket will occur in an [@ipl] game based on relevant variables from the dataset. Furtherore, I wanted to create a model that would achieve the most accuracy with the least amount of variables. To achieve this, three different generalized binomial family linear models (logistic regression) were used. The first model only had one input variable, the second one had two input variables, and third had four input variables. All models had the wicket boolean variable as the response variable.
 
-## Model Set-Up for Single Variable Generalized Linear Model
+## Model Set-up
 
-The model is set up using the `glm` [@citeR] CRAN package. It uses binomial family with the specified formula.
+All models are set up using the `glm` [@citeR] CRAN package. It uses the binomial family. All models trained on a training dataset, which contains 80% of the original data, which the other 20% being the testing set.
+
+### Single Variable Generalized Linear Model
+
+The single variable model uses a GLM model with only the over number as the input variable.
 
 $\Pr(\text{Wicket} = 1) = \text{logit}^{-1}\left(\beta_0 + \beta_1 \cdot \text{over}\right)$
 
-Beta Explaiation:
+Beta Explanation:
 
-$\beta_0$: Represents the general intercept, which represents the log-odds of a wicket occuring when the over variables does not matter
+$\beta_0$: Represents the general intercept, which represents the log-odds of a wicket occurring when the over variables does not matter
 
-$\beta_1$: Represents the coefficent for the current over number
+$\beta_1$: Represents the coefficient for the current over number
 
 
 ```{r}
@@ -248,17 +250,17 @@ modelsummary(list("Wicket Prediction (Single Variable Input)" = simple_glm_wicke
 ```
 Based on @tbl-model-summary-one-var, modeling with only the over variable accounts 0.22 RSME variability. Also for an increase in one over, the log odds of a wicket occuring increase by 0.058213 with a be value that is almost zero (less than $2*10^-16$). In terms of deviance, while not shown in the table, residual deviance of the model is roughly 300 degrees of freedom less than the null. The null deviance is 20849 on 51586 degrees of freedom while the residual deviance is 20586 on 51585 degrees of freedom.
 
-## Model Set-Up for Two Variable Variable Generalized Linear Model
+### Model Set-Up for Two Variable Variable Generalized Linear Model
 
-The model is set up using the `glm` [@citeR] CRAN package. It uses binomial family with the specified formula.
+The single variable model uses a GLM model with the over number and number of wickets before an out as the input variable.
 
 $\Pr(\text{Wicket} = 1) = \text{logit}^{-1}\left(\beta_0 + \beta_1 \cdot \text{over} + \beta_2 \cdot \text{previousOverWickets}\right)$
 
 $\beta_0$: Represents the general intercept, which is the value that occurs when all other variables cancel each other out
 
-$\beta_1$: Represents the coefficent for the current over number
+$\beta_1$: Represents the coefficient for the current over number
 
-$\beta_2$: Represents the coefficent for the number of wickets in the previous over
+$\beta_2$: Represents the coefficient for the number of wickets in the previous over
 
 ```{r}
 #| label: tbl-model-summary-two-var
@@ -270,22 +272,17 @@ complex_glm_wicket_model <- readRDS(here("models/complex_glm_wicket_model.rds"))
 #summary(complex_glm_wicket_model)
 modelsummary(list("Wicket Prediction (Two Variable Input)" = complex_glm_wicket_model))
 ```
-Based on @tbl-model-summary-two-var, modeling with only the over variable accounts 0.22 RSME variability. Also for an increase in number previous wickets in the previous over, the log odds of a wicket occuring increase by 1.852 with a p value that is almost zero (less than $2*10^-16$). The null deviance is 20849 on 51586 degrees of freedom while the residual deviance is 16584 on 51584 degrees of freedom. The logs odds increase for over is 0.005 with a p value of 0.168.
+Based on @tbl-model-summary-two-var, modeling with only the over variable accounts 0.22 RSME variability. Also for an increase in number previous wickets in the previous over, the log odds of a wicket occurring increase by 1.852 with a p value that is almost zero (less than $2*10^-16$). The null deviance is 20849 on 51586 degrees of freedom while the residual deviance is 16584 on 51584 degrees of freedom. The logs odds increase for over is 0.005 with a p value of 0.168.
 
-## Model Set-Up for Four Variable Generalized Linear Model
+### Model Set-Up for Four Variable Generalized Linear Model
 
-Adding the two extra variables, batting style and bowling style, to the model did not change the effecitveness in predicability at all. More rigouris analysis avaliable in @sec-fourvar-model.
+Adding the two extra variables, batting style and bowling style, to the model did not change the effectiveness in predictability at all. More rigorous analysis available in @sec-fourvar-model.
 
 ## Model justification
 
-Based on @fig-over-wickets, there was a strong positive linear relationship between the over and the number of wickets taken, suggestign that the over can be a predictor of a wicket occuring. From @fig-bowlingstyle-wickets certain matchup produced a higher chance of a wicket occuring, such as left hand fast on a left hand batter, which is why both variables were added to the four variable model in @sec-fourvar-model. Finally from @fig-prevoverwickets-wickets, the average number of wickets that occured in the previous over had a strong positive linear relationship with the number of wickets that occured in balls in the next over, implying that previous over wickets impact the wicket probability of a ball in the next over.
+Based on @fig-over-wickets, there was a strong positive linear relationship between the over and the number of wickets taken, suggesting that the over can be a predictor of a wicket occurring. From @fig-bowlingstyle-wickets certain match-up produced a higher chance of a wicket occurring, such as left hand fast on a left hand batter, which is why both variables were added to the four variable model in @sec-fourvar-model. Finally from @fig-prevoverwickets-wickets, the average number of wickets that occurred in the previous over had a strong positive linear relationship with the number of wickets that occurred in balls in the next over, implying that previous over wickets impact the wicket probability of a ball in the next over.
 
 # Results
-
-## Training and Test Split
-
-80% of the data was used for training and 20% of the data will be used for testing.
-
 
 ## One Variable Model
 
@@ -312,11 +309,11 @@ simple_glm_wicket_model_predictions |>
   theme_classic() +
   theme(legend.position = "bottom")
 ```
-
+Based on @fig-onevarmodel-results, there's a strong linear positive relationship between the over number and the single variable model wicket prediction probability. Also, in the 20th over, the model will almost always predict a wicket.
 
 ```{r}
 #| label: tbl-model-one-var-results
-#| tbl-cap: "One Variable Model Underfits the Data"
+#| tbl-cap: "One Variable Model Underfits the Test Data"
 #| echo: false
 #| warning: false
 test_data_simple <- test_data
@@ -331,18 +328,19 @@ summary_results <- test_data_simple %>% group_by(wicket) %>%
   summarise(
   correct = sum(correct_prediction),
   incorrect = sum(!correct_prediction)
-)
+) %>% mutate(wicket = if_else(wicket, "Yes", "No"))
 
-summary_results
+summary_results %>% kable(col.names = c("Was Actually A Wicket?", "Correct", "Incorrect"))
 
 ```
+From @tbl-model-one-var-results, the model has is 95.000% accurate, with a 100% accuracy for correctly predicting a wicket. However, the model has 0% change of correctly predicting when a wicket will occur. For this model, it is assumed that when the estimated probability of a wicket occurring is greater than or equal to 50%, the model is predicting a wicket.
+
 
 ## Two Variable Model
 
 ```{r}
 #| label: fig-twovarmodel-results
 #| fig-cap: Logarithmic Relationship Between Wicket Probability and the previous overs wickets
-# (after adjusting for the over)
 #| echo: false
 #| warning: false
 complex_glm_wicket_model_predictions <-
@@ -361,45 +359,47 @@ complex_glm_wicket_model_predictions |>
   theme_classic() +
   theme(legend.position = "bottom")
 ```
+Based on @fig-twovarmodel-results, the number of wickets in the previous over had a positive log-like relationship with the estimated probability of a wicket occurring the two variable model. Also, when the previous over had two or more wickets, the model predicts 90% or more chance of a wicket occurring. It is important to note that this model also factors in variation from the current over of the game when generating predictions probability estimates.
+
 
 ```{r}
-#| label: tbl-model-one-var-results
-#| tbl-cap: "Two Variable Model Struggles to Predict Wickets"
+#| label: tbl-model-two-var-results
+#| tbl-cap: "Two Variable Model Struggles to Predict Wickets in Test Data"
+#| echo: false
+#| warning: false
 test_data_complex <- test_data
 predictions <- predict(complex_glm_wicket_model, newdata = test_data_complex, type = "response")
 
-test_data_simple$predicted_wicket_prob <- predictions
-test_data_simple <- test_data_simple %>% 
+test_data_complex$predicted_wicket_prob <- predictions
+test_data_complex <- test_data_complex %>% 
   mutate(predicted_wicket = predicted_wicket_prob >= 0.5) %>% 
   mutate(correct_prediction = predicted_wicket == wicket)
 
-summary_results <- test_data_simple %>% group_by(wicket) %>% 
+summary_results <- test_data_complex %>% group_by(wicket) %>% 
   summarise(
   correct = sum(correct_prediction),
   incorrect = sum(!correct_prediction)
-)
+) %>% mutate(wicket = if_else(wicket, "Yes", "No"))
 
-summary_results
+summary_results %>% kable(col.names = c("Was Actually A Wicket?", "Correct", "Incorrect"))
 ```
+Via @tbl-model-two-var-results, the two variable model has a 94.952% accuracy on the test data. Wicket occurrences are predicted with a 2.640% accuracy and a wicket not occurring is predicted with a 99.804% accuracy. For this model, it is assumed that when the estimated probability of a wicket occurring is greater than or equal to 50%, the model is predicting a wicket.
+
 
 ## Four Variable Model
+
+The four variable model is discussed in the results section since most of the variables did not have a large impact on the model. More information on that model in @sec-fourvar-model.
 
 
 # Discussion
 
-## First discussion point {#sec-first-point}
+## Variables that Lead to Wickets 
 
-If my paper were 10 pages, then should be be at least 2.5 pages. The discussion is a chance to show off what you know and what you learnt from all this. 
+## Variables that Do Not Lead to Wickets 
 
-## Second discussion point
+## Model Discussion
 
-Please don't use these as sub-heading labels - change them to be what your point actually is.
-
-## Third discussion point
-
-## Weaknesses and next steps
-
-Weaknesses and next steps should also be included.
+## Next Steps, Weaknesses, and Limitations
 
 \newpage
 
@@ -407,7 +407,7 @@ Weaknesses and next steps should also be included.
 
 # Appendix {-}
 
-# Four Variable Model {#sec-fourvar-model}
+## Four Variable Model {#sec-fourvar-model}
 
 The model is set up using the `glm` [@citeR] CRAN package. It uses binomial family with the specified formula.
 
@@ -416,13 +416,13 @@ $\Pr(\text{Wicket} = 1) = \text{logit}^{-1}\left(\beta_0 + \beta_1 \cdot \text{o
 
 $\beta_0$: Represents the general intercept, which is the value that occurs when all other variables cancel each other out.
 
-$\beta_1$: Represents the coefficent for the current over number
+$\beta_1$: Represents the coefficient for the current over number
 
-$\beta_2$: Represents the coefficent for the number of wickets in the previous over
+$\beta_2$: Represents the coefficient for the number of wickets in the previous over
 
-$\beta_3$: Represents the coefficent for the bowling style. Each bowling style has its own coefficent.
+$\beta_3$: Represents the coefficient for the bowling style. Each bowling style has its own coefficient.
 
-$\beta_4$: Represents the coefficent for the batting style (left handed or right handed). Each batting style has its own coefficent.
+$\beta_4$: Represents the coefficient for the batting style (left handed or right handed). Each batting style has its own coefficient.
 
 \newpage
 
@@ -437,17 +437,15 @@ overly_complex_glm_wicket_model <- readRDS(here("models/overly_complex_glm_wicke
 #summary(overly_complex_glm_wicket_model)
 modelsummary(overly_complex_glm_wicket_model)
 ```
-Based on @tbl-model-summary-four-var, none of the batting styles or bowling style coefficent are statistically significant all with p values greater than 10%. This implies that most likely these variables not great predictors of wicket creation. The number of wickets in the previous over still has a statistically signifcant impact and has an increase of 0.031446 log odds per an increase of one wicket in the previous over. The residual deviance is 16574 on 51571 degrees of freedom compared to the null of 20849 on 51586 degrees of freedom.
+Based on @tbl-model-summary-four-var, none of the batting styles or bowling style coefficient are statistically significant all with p values greater than 10%. This implies that most likely these variables not great predictors of wicket creation. The number of wickets in the previous over still has a statistically significant impact and has an increase of 0.031446 log odds per an increase of one wicket in the previous over. The residual deviance is 16574 on 51571 degrees of freedom compared to the null of 20849 on 51586 degrees of freedom.
 
-# Variables Not Part of Model
+## Variables Not Part of Model
 
 ```{r}
 #| label: fig-stadium-wickets
 #| fig-cap: Some stadiums are more prone to wickets than others.
 #| echo: false
 #| warning: false
-
-cleaned_data %>% head()
 
 stadium_boundaries <- cleaned_data %>%
   group_by(venue) %>%
@@ -481,25 +479,9 @@ ggplot(cleaned_data, aes(x = run_rate, fill = factor(wicket))) +
   theme_minimal()
 ```
 
-# Extra Tables {#sec-extra-tables}
-
-```{r}
-
-bowling_batting_role_matchup_boundaries <- cleaned_data %>%
-  group_by(bowling_style, batter_playing_role) %>%
-  summarise(
-    wickets_percentage = round(sum(wicket == TRUE)/n(), 3),  
-    num_balls = n(),                             
-  ) %>% arrange(desc(wickets_percentage), bowling_style, batter_playing_role)
-
-bowling_batting_role_matchup_boundaries
-
-
-```
-
 \newpage
 
-# Cleaned Data Dictionary {#sec-cleaned-data-dictionary}
+## Cleaned Data Dictionary {#sec-cleaned-data-dictionary}
 
 Below are all of the variables in the cleaned data with an explanation of each variable, examples, and the data type.
 
@@ -583,11 +565,11 @@ The number of wickets the bowling team had in the previous over.
 
 
 
-# Idealized Methodology
+## Idealized Methodology
 
 This section will go over a comprehensive plan that could be used to translate real time cricket plays to actual data sets and databases that can be accessed by individuals interested in performing statistical analysis. Since this data is not a survey and is not really sampling based, there will be no mention of terms like stratified or cluster sampling or selection and response bias. This example will only be about the [@ipl] level cricket since this paper is only about the [@ipl]. However, most of this methodology can be used in other cricket leagues and other formats.
 
-## Translating Plays to Data
+### Translating Plays to Data
 
 The process of converting live cricket plays into structured data begins with real-time observation and documentation. During an Indian Premier League (IPL) match, a dedicated data entry team should closely monitor every moment of the game, capturing critical information about each play as it unfolds. A primary data collector focuses on immediate, live-capturable elements such as the bowler's name, the batsman on strike, the non-striking batsman, the type of bowling delivery, number of runs scored, and any fielding actions. This real-time data collection requires trained personnel with a deep understanding of cricket's nuanced rules and scoring mechanisms.
 
@@ -595,13 +577,13 @@ Simultaneously, a secondary team prepares for post-match data verification and e
 
 The data entry process is designed with multiple layers of validation. Trained data entry specialists use specialized software that provides immediate validation checks, flagging potential inconsistencies or unusual entries for immediate review. This approach minimizes human error and ensures the highest possible data integrity. The entire process is structured to capture not just the basic outcomes of plays, but the rich contextual information that makes cricket data valuable for deeper statistical analysis.
 
-## Making Data Easy to Use
+### Making Data Easy to Use
 
 To make this data easy to use, the team should create a clean structured or SQL database. Creating a robust and user-friendly database requires careful architectural planning. The proposed database design incorporates multiple interconnected tables that provide a comprehensive view of IPL cricket data. A player table serves as a central repository, with each player assigned a unique identifier that can be referenced across other tables. This player's primary key ID becomes a critical link in tables such as play, match, and season tables, enabling complex queries and data relationships.
 
 The database design prioritizes data reliability and efficiency. By using multiple tables, the system eliminates redundancy and minimizes storage requirements. For instance, a match table would contain high-level match information, while a play table would capture granular, play-by-play details. A season table allows for broader and simple analysis, tracking changes and trends, winners, top scorers and more, across different IPL seasons. This structured approach not only improves data storage efficiency but also enhances the usability of the data set for researchers, analysts, and cricket enthusiasts.
 
-## Making Data Accessible
+### Making Data Accessible
 
 Data accessibility is fundamental to the value of this cricket data set. The proposed system implements a controlled access mechanism through a carefully designed API that allows broad yet secure data retrieval. An API key system ensures that access is regulated, preventing potential system overloads while maintaining open accessibility. Rate limiting mechanisms are strategically implemented to protect the system from potential denial-of-service attacks, ensuring consistent data availability for all authorized users.
 
@@ -609,31 +591,31 @@ The public API is deliberately designed as a read-only interface, preventing una
 
 Overall, this methodology represents a comprehensive approach to transforming live observational cricket plays into a structured, accessible, and reliable data set that can support advanced statistical analysis and deeper understanding of the Indian Premier League.
 
-# Data Sheet for The Raw Data {#sec-data-sheet}
+## Data Sheet for The Raw Data {#sec-data-sheet}
 
-## Questions
+### Questions
 
-### Who put the data set together?
+#### Who put the data set together?
 
 The raw data set was acquired from the [@cricketdata] R package. This data set had many contributors which can be seen through this [link](https://pkg.robjhyndman.com/cricketdata/), but the main developer is Rob Hyndman. The data set scraps the html from [@espncricinfo] and [@cricsheet]. These are two reputable organizations when it comes to cricket game data. [@cricsheet] is moreso responsible for play by play cricket data, like giving the data for what happens for every ball in a game, whereas [@espncricinfo] is more responsible for general player career information and statistics.
 
-### Who paid for the data set to be created?
+#### Who paid for the data set to be created?
 
 The  [@cricketdata] R package is completely open source and free under the GPL-3 license. The source code can be seen through this [link](https://github.com/robjhyndman/cricketdata). In terms of ESPN Cricinfo, this is a site and organization that makes money talking about cricket and airing games. So, it is in their best interest to give basic statistics for free on their website to entice people to use their services to watch and interact with content related to cricket. Cricsheet is operated by Stephen Rushe. He has written code to extract play-by-play cricket match data, which most likely means he is web scraping. There is not much other information about the code that extracts the data and what sites he uses.
 
-### How complete is the data set? {#sec-complete-data set}
+#### How complete is the data set?
 
 The play by play data is very complete. For each ball in a game, it includes the bowler, batter, the batter on the opposite wicket, the venue, teams, the runs given, and more. The important data that seems to be missing is data related to the position of the fielders and the distance and final location of the ball once and if it hits the bat. In terms of player info, it is also very complete. It includes information about their batting style, blowing style if applicable, and their role on the team. The only issue here is that a player's role on the team can change depending on the team they are one. For instance, a player might be an opening batsman when playing in test cricket but could be a midover batsman when playing in T20. This data set does not account for this discrepancy. 
 
-### Which variables are present, and, equally, not present, for particular observations?
+#### Which variables are present, and, equally, not present, for particular observations?
 
 For play-by-play data the bowler, battsman, and teams involved in the play are present and so is general game information. Furthermore, the final outcome of the play, such as the number of runs, or if a wicket occurred are also given. Information about ball speed, distance, location, and fielding is not given. For player information, information about their country of citizenship, country of birth, batting style, bowling style, and batting order, and player role on a team are given. Potential missing observations with the player information are listed in @sec-complete-data set.
 
-## Data Dictionary For Raw Data {#sec-data-dictionary}
+### Data Dictionary For Raw Data {#sec-data-dictionary}
 
 For this report, there are only two data sets used, the IPL (Indian Premier League) play-by-play data and player metadata. The variables for these data sets will be listed here with examples.
 
-### Play-by-play IPL Data
+#### Play-by-play IPL Data
 
 Match id (Integer)  
 Example: 335982  
@@ -641,7 +623,7 @@ A randomly generated ID uniquely identifies each cricket match in the data set.
 
 Season (String)  
 Example: 2007/8 or 2024  
-Represents the IPL tournament year of the match. For instance “2007/8” represents the 2007 to 2008 IPL season and 2024 represents the tournament that was played only in 2024\.
+Represents the IPL tournament year of the match. For instance “2007/8” represents the 2007 to 2008 IPL season and 2024 represents the tournament that was played only in 2024.
 
 Season (Date)  
 Example: 2024-04-15  
@@ -746,7 +728,7 @@ Player Dismissed (String)
 Example: A Ashish Reddy  
 If a wicket occurred, this column will have the name of the player that was dismissed.
 
-### Player Metadata
+#### Player Metadata
 
 Cricinfo Player id (Integer)  
 Example: 1175501  
@@ -788,11 +770,7 @@ Player Role (String)
 Example: Allrounder  
 The role of a player on the team.
 
-# References
+\newpage
 
-What to cite:
-- cricketdata
-- ESPNCricinfo
-- Cricsheet
-- All tidyverse packages used
+# References
 
