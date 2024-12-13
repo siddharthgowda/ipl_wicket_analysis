@@ -147,9 +147,11 @@ From @tbl-batting-style, significantly more batsman are right handed than left h
 
 ## Relationship Between Wickets and other Variables
 
+### Wickets and Run Rate
+
 ```{r}
 #| label: fig-runrate-numofwickets
-#| fig-cap: Current Run Rate Does Not Impact Wicket Rate
+#| fig-cap: Current Run Rate is Not Associated With Wicket Production
 #| echo: false
 #| warning: false
 
@@ -163,7 +165,9 @@ ggplot(cleaned_data, aes(x = run_rate, fill = factor(wicket))) +
   theme_minimal()
 ```
 
-From @fig-runrate-numofwickets, both the distribution of current run rates of teams when a wicket occurs and when a wicket does not occur are approximately normally distributed around 8.5. The variability for both distributions also appears to be the same. However, the distribution of run rate for balls that are not wickets occur has more outliers than for wickets occurrences.
+From @fig-runrate-numofwickets, both the distribution of current run rates of teams when a wicket occurs and when a wicket does not occur are approximately normally distributed around a 8.5 run rate. The variability for both distributions also appears to be the same. However, the distribution of run rate for balls that are not wickets occur has more outliers than for wickets occurrences.
+
+### Wickets and Over
 
 ```{r}
 #| label: fig-over-wickets
@@ -189,9 +193,11 @@ ggplot(over_boundaries, aes(x = over, y = num_wickets)) +
 ```
 From @fig-over-wickets, there is a pretty strong linear positive relationship between the over number and the number of wickets that occur. It is important to note that in the last over (over 20) wicket occur way more than other overs. Also over 5 has more wickets than the linear trend.
 
+### Wickets Based on Batsman Bowler Matchup
+
 ```{r}
 #| label: fig-bowlingstyle-wickets
-#| fig-cap: Wickets are more likely later in the innings
+#| fig-cap: Fast Bowlers Generate More Wickets
 #| echo: false
 #| warning: false
 
@@ -214,6 +220,8 @@ ggplot(bowling_batting_matchup_boundaries, aes(x = bowling_style, y = wicket_per
 
 ```
 Based on @fig-bowlingstyle-wickets, for left hand batters, left arm fast bowlers have the highest chance of generating a wicket. For right hand batters, medium pace or medium fast pace bowlers are the most likely to get wickets.
+
+### Wickets and Number of Wickets in the Previous Over
 
 ```{r}
 #| label: fig-prevoverwickets-wickets

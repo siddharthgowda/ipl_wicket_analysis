@@ -9,7 +9,7 @@
   # - The `tidyverse` package must be installed
   # - 00-simulate_data.R must have been run
   # - testthat must be installed
-  # - arrow must be instaled
+  # - arrow must be installed
 # Any other information needed? None
 
 

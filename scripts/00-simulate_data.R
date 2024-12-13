@@ -4,11 +4,12 @@
 # Date: 28 November 2024
 # Contact: siddharth.gowda@mail.utoronto.ca
 # License: MIT
-# Pre-requisites: The `tidyverse` package must be installed
+# Pre-requisites: The `tidyverse` and `arrow` packages must be installed
 # Any other information needed? None
 
 #### Workspace setup ####
 library(tidyverse)
+library(arrow)
 set.seed(888)
 
 #### Simulate data ####

@@ -4,13 +4,12 @@
 # Date: 28 November 2024
 # Contact: siddharth.gowda@mail.utoronto.ca
 # License: MIT
-# Pre-requisites: Install cricketdata R package and general understanding of
-# the sport of cricket
+# Pre-requisites: Install cricketdata and tidyverse packages. A general understanding
+# of cricket.
 # Any other information needed? None
 
 
 #### Workspace setup ####
-#install.packages("cricketdata", dependencies = TRUE)
 library(cricketdata)
 library(tidyverse)
 
