@@ -9,8 +9,11 @@ date-format: long
 abstract: "The paper analyzes what variables are the best predictors of wickets in the Indian Permier League (IPL). The current over, the bowling style, batting hand, and the number of wickets in the previous over impact the probability of a wicket occuring. Moreover, the number of wickets in the previous over is the greatest predictor of wickets occuring. These findings can be used by IPL teams when attempting large comebacks or when trying to prevent comebacks."
 format: pdf
 number-sections: true
+toc: true
 bibliography: references.bib
 ---
+
+\newpage
 
 ```{r}
 #| include: false
@@ -420,6 +423,8 @@ Via @tbl-model-two-var-results, the two variable model has a 94.952% accuracy on
 ## Four Variable Model
 
 The four variable model is not discussed in the results section since most of the variables did not have a large impact on the model. More information on that model in @sec-fourvar-model.
+
+\newpage
 
 
 # Discussion
