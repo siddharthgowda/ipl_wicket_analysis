@@ -4,7 +4,8 @@
 # Date: 28 November 2024
 # Contact: siddharth.gowda@mail.utoronto.ca
 # License: MIT
-# Pre-requisites: tidyverse
+# Pre-requisites: tidyverse and 03-clean_data.R must have been run
+
 # Any other information needed? None
 
 

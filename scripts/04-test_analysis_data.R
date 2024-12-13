@@ -7,9 +7,9 @@
 # License: MIT
 # Pre-requisites: 
 # - The `tidyverse` package must be installed
-# - 00-simulate_data.R must have been run
 # - testthat must be installed
-# - arrow must be instaled
+# - arrow must be installed
+# - 04-test_analysis_data.R must have been run
 # Any other information needed? None
 
 

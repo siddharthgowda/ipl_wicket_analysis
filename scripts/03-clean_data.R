@@ -4,7 +4,8 @@
 # Date: 28 November 2024
 # Contact: siddharth.gowda@mail.utoronto.ca
 # License: MIT
-# Pre-requisites: tidyverse, lubridate, arrow packages must be installed
+# Pre-requisites: tidyverse, lubridate, arrow packages must be installed,
+# - 02-download_data.R must have been run
 # Any other information needed? None
 
 #### Workspace setup ####
