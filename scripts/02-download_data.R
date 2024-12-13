@@ -25,8 +25,6 @@ player_meta %>% head()
 
 
 #### Save data ####
-# [...UPDATE THIS...]
-# change the_raw_data to whatever name you assigned when you downloaded it.
 write_csv(ipl_bbb, "data/01-raw_data/ipl_men.csv")
 write_csv(player_meta, "data/01-raw_data/player_meta.csv")
 
