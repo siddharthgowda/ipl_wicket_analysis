@@ -1,8 +1,8 @@
-# IPL Wicket Analysis
+# IPL Wicket Analysis Report
 
 ## Overview
 
-The goal of this paper is to figure out which variables are the best at predicting a future wicket in T20 Cricket. This was achieved by analyzing play by play cricket data from the 2021, 2022, 2023, and 2024 IPL men's tournament data. Overall, the analysis found that the number of wickets in the previous over was the best predictor of future wickets. The paper also contains an idealized methodology for recording cricket data, a data dictionary for cleaned data, and a datasheet for raw data.
+The goal of this paper is to figure out which variables are the best at predicting a future wicket in T20 Cricket. This was achieved by analyzing play by play cricket data from the 2021, 2022, 2023, and 2024 IPL men's tournament data. Overall, the analysis found that the number of wickets in the previous over was the best predictor of future wickets. The paper also contains an idealized methodology for recording cricket data, a data dictionary for cleaned data, and a datasheet for raw data (this includes a raw data dictionary).
 
 Please run all files in the `scripts` folder before running the `paper.qmd` file.
 

@@ -96,7 +96,7 @@ cleaned_data %>% select(!c(year, venue, batter_playing_role, bowler_playing_role
 
 ## Measurement
 
-All cricket data is from the R [@citeR] package `cricketdata` [@cricketdata]. The data that was used is from the CRAN version of the package and not the Github [@github] developer tools version because the CRAN is more stable. The `cricketdata` [@cricketdata] package takes data from ESPN Cricinfo [@espncricinfo] and Cricsheet [@cricsheet]. While not stated by `cricketdata` [@cricketdata], based on the code the team behind the package are scrapping the HTML of ESPN Cricinfo and Cricsheet, As a result, anyone using the package must respect the rate limits set by these sites. Therefore, the data was first saved as CSV before performing any other data cleaning and analysis.
+All cricket data is from the R [@citeR] package `cricketdata` [@cricketdata]. The data that was used is from the CRAN version of the package and not the Github [@github] developer tools version because the CRAN is more stable. The `cricketdata` [@cricketdata] package takes data from ESPN Cricinfo [@espncricinfo] and Cricsheet [@cricsheet]. While not stated by `cricketdata` [@cricketdata], based on the code, the team behind the package are scrapping the HTML of ESPN Cricinfo [@espncricinfo] and downloading CSV data from Cricsheet [@cricsheet], As a result, anyone using the package must respect the rate limits set by these sites. Therefore, for this analysis the raw data was first saved as CSV before performing any other data cleaning and analysis.
 
 More information about the raw data sets, measurements, and data sources is in @sec-data-sheet.
 
@@ -587,19 +587,19 @@ The public API is deliberately designed as a read-only interface, preventing una
 
 #### Who put the data set together?
 
-The raw data set was acquired from the `cricketdata` [@cricketdata] R package. This data set had many contributors which can be seen through this [link](https://pkg.robjhyndman.com/cricketdata/), but the main developer is Rob Hyndman. The data set scraps the html from ESPN Cricinfo [@espncricinfo] and Cricsheet [@cricsheet]. These are two reputable organizations when it comes to cricket game data. Cricsheet [@cricsheet] is more so responsible for play by play cricket data, like giving the data for what happens for every ball in a game, whereas ESPN Cricinfo [@espncricinfo] is more responsible for general player career information and statistics.
+The raw data set was acquired from the `cricketdata` [@cricketdata] R package. This data set had many contributors which can be seen through this [link](https://pkg.robjhyndman.com/cricketdata/), but the main developer is Rob Hyndman. The data set scraps the html from ESPN Cricinfo [@espncricinfo] and downloads CSV data from Cricsheet [@cricsheet]. These are two reputable organizations when it comes to cricket game data. Cricsheet [@cricsheet] is more so responsible for play by play cricket data, like giving the data for what happens for every ball in a game, whereas ESPN Cricinfo [@espncricinfo] is more responsible for general player career information and statistics.
 
 #### Who paid for the data set to be created?
 
 The `cricketdata` [@cricketdata] R package is completely open source and free under the GPL-3 license. The source code can be seen through this [link](https://github.com/robjhyndman/cricketdata). In terms of ESPN Cricinfo [@espncricinfo], this is a site and organization that makes money talking about cricket and airing games. So, it is in their best interest to give basic statistics for free on their website to entice people to use their services to watch and interact with content related to cricket. Cricsheet [@cricsheet] is operated by Stephen Rushe. He has written code to extract play-by-play cricket match data, which most likely means he is web scraping. There is not much other information about the code that extracts the data and what sites he uses.
 
-#### How complete is the data set?
+#### How complete is the data set? {#sec-complete-data-set}
 
 The play by play data is very complete. For each ball in a game, it includes the bowler, batter, the batter on the opposite wicket, the venue, teams, the runs given, and more. The important data that seems to be missing is data related to the position of the fielders and the distance and final location of the ball once and if it hits the bat. In terms of player info, it is also very complete. It includes information about their batting style, blowing style if applicable, and their role on the team. The only issue here is that a player's role on the team can change depending on the team they are on. For instance, a player might be an opening batsman when playing in test cricket but could be a middle over batsman when playing in T20. This data set does not account for this discrepancy.
 
 #### Which variables are present, and, equally, not present, for particular observations?
 
-For play-by-play data the bowler, batsman, and teams involved in the play are present and so is general game information. Furthermore, the final outcome of the play, such as the number of runs, or if a wicket occurred are also given. Information about ball speed, distance, location, and fielding is not given. For player information, information about their country of citizenship, country of birth, batting style, bowling style, and batting order, and player role on a team are given. Potential missing observations with the player information are listed in @sec-complete-data set.
+For play-by-play data the bowler, batsman, and teams involved in the play are present and so is general game information. Furthermore, the final outcome of the play, such as the number of runs, or if a wicket occurred are also given. Information about ball speed, distance, location, and fielding is not given. For player information, information about their country of citizenship, country of birth, batting style, bowling style, and batting order, and player role on a team are given. Potential missing observations with the player information are listed in @sec-complete-data-set.
 
 ### Data Dictionary For Raw Data {#sec-data-dictionary}
 
